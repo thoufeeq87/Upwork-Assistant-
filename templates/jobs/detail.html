@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} — Upwork Assistant{% endblock %}
+{% block content %}
+<p><a href="{% url 'jobs:dashboard' %}">&larr; Back to dashboard</a></p>
+
+<div class="card">
+  <div class="status">{{ job.get_status_display }}</div>
+  <h1>{{ job.title }}</h1>
+  <span class="badge badge-{{ job.freelancer_type }}">{{ job.get_freelancer_type_display }}</span>
+  <p>{{ job.snippet_text }}</p>
+  <a href="{{ job.upwork_url }}" target="_blank" rel="noopener">Open on Upwork &rarr;</a>
+</div>
+
+<div class="card">
+  <h3>Screenshots ({{ job.screenshots.count }})</h3>
+  {% for shot in job.screenshots.all %}
+    <img src="{{ shot.image.url }}" alt="Screenshot {{ shot.order }}" style="max-width: 100%; margin-bottom: 0.5rem; border: 1px solid #ddd;">
+  {% empty %}
+    <p>No screenshots yet. Capture the job page with the Chrome extension, then refresh this page.</p>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <h3>Hooks</h3>
+  <button
+    hx-post="{% url 'proposals:generate_hooks' job.id %}"
+    hx-target="#hooks-section" hx-swap="outerHTML"
+    hx-indicator="#hooks-spinner">
+    Generate hooks
+  </button>
+  <span id="hooks-spinner" class="htmx-indicator">Generating&hellip;</span>
+  {% include "proposals/_hooks.html" with hooks=job.hooks.all error=None %}
+</div>
+
+<div class="card">
+  <h3>Proposal</h3>
+  {% include "proposals/_proposal.html" with proposal=job.proposals.first error=None %}
+</div>
+{% endblock %}

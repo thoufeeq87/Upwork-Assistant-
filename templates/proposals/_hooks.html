@@ -1,0 +1,23 @@
+<div id="hooks-section">
+  {% if error %}<p style="color:#a33;">{{ error }}</p>{% endif %}
+  {% if hooks %}
+    {% for hook in hooks %}
+      <div class="card" style="{% if hook.selected %}border-color:#1a1a1a;{% endif %}">
+        <p>{{ hook.text }}</p>
+        <button
+          hx-post="{% url 'proposals:select_hook' hook.id %}"
+          hx-target="#hooks-section" hx-swap="outerHTML">
+          {% if hook.selected %}Selected &check;{% else %}Use this hook{% endif %}
+        </button>
+      </div>
+    {% endfor %}
+    <button
+      hx-post="{% url 'proposals:generate_proposal' job.id %}"
+      hx-target="#proposal-section" hx-swap="outerHTML"
+      {% if not hooks %}disabled{% endif %}>
+      Generate full proposal from selected hook
+    </button>
+  {% else %}
+    <p>No hooks yet.</p>
+  {% endif %}
+</div>

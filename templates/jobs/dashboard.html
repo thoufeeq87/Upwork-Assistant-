@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Upwork Assistant{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content: space-between; align-items: center;">
+  <h1>Jobs</h1>
+  <form method="post" action="{% url 'ingestion:sync_now' %}">
+    {% csrf_token %}
+    <button type="submit">Sync Now</button>
+  </form>
+</div>
+
+<div class="filters">
+  <strong>Status:</strong>
+  <a href="?{% if current_freelancer_type %}freelancer_type={{ current_freelancer_type }}{% endif %}" class="{% if not current_status %}active{% endif %}">All</a>
+  {% for value, label in status_choices %}
+    <a href="?status={{ value }}{% if current_freelancer_type %}&freelancer_type={{ current_freelancer_type }}{% endif %}" class="{% if current_status == value %}active{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+<div class="filters">
+  <strong>Freelancer type:</strong>
+  <a href="?{% if current_status %}status={{ current_status }}{% endif %}" class="{% if not current_freelancer_type %}active{% endif %}">All</a>
+  {% for value, label in freelancer_type_choices %}
+    <a href="?freelancer_type={{ value }}{% if current_status %}&status={{ current_status }}{% endif %}" class="{% if current_freelancer_type == value %}active{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+{% for job in jobs %}
+<div class="card">
+  <div class="status">{{ job.get_status_display }}</div>
+  <a class="job-title" href="{% url 'jobs:detail' job.pk %}">{{ job.title }}</a>
+  <span class="badge badge-{{ job.freelancer_type }}">{{ job.get_freelancer_type_display }}</span>
+  <p>{{ job.snippet_text|truncatewords:40 }}</p>
+  <a href="{{ job.upwork_url }}" target="_blank" rel="noopener">Open on Upwork &rarr;</a>
+</div>
+{% empty %}
+<p>No jobs yet. Click "Sync Now" once Gmail ingestion is configured.</p>
+{% endfor %}
+{% endblock %}

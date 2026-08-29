@@ -78,13 +78,18 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Screenshot storage default: local filesystem for dev. Production overrides
-# this with an S3-compatible bucket (see settings/production.py) since
-# Railway's container filesystem is ephemeral.
+# just the "default" key with an S3-compatible bucket (see settings/production.py)
+# since Railway's container filesystem is ephemeral. Kept as the new-style
+# STORAGES dict everywhere — Django raises ImproperlyConfigured if this and
+# the legacy STATICFILES_STORAGE/DEFAULT_FILE_STORAGE settings are both set.
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

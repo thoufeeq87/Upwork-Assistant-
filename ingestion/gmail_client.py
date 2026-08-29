@@ -17,7 +17,13 @@ from .models import GmailCredential
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
 
-def build_flow(redirect_uri: str) -> Flow:
+def build_flow(redirect_uri: str, *, state: str | None = None, code_verifier: str | None = None) -> Flow:
+    """Builds a Flow for the authorize step, or (with `state`/`code_verifier`
+    from the session) an equivalent Flow for the callback step — PKCE means
+    the code_verifier generated when building the authorization URL must be
+    reused for the token exchange, and since each step is a separate HTTP
+    request/Flow instance, the caller is responsible for round-tripping both
+    through the session in between."""
     client_config = {
         "web": {
             "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
@@ -27,7 +33,13 @@ def build_flow(redirect_uri: str) -> Flow:
             "redirect_uris": [redirect_uri],
         }
     }
-    return Flow.from_client_config(client_config, scopes=SCOPES, redirect_uri=redirect_uri)
+    return Flow.from_client_config(
+        client_config,
+        scopes=SCOPES,
+        redirect_uri=redirect_uri,
+        state=state,
+        code_verifier=code_verifier,
+    )
 
 
 def save_credentials_from_flow(flow: Flow) -> None:

@@ -1,7 +1,10 @@
 from .base import *  # noqa: F401,F403
 from .base import env
 
-DEBUG = False
+# Normally False. Set DJANGO_DEBUG=True temporarily on Railway to see full
+# tracebacks in the browser while debugging a live issue — turn it back off
+# once done, since DEBUG=True leaks settings/source on error pages.
+DEBUG = env.bool("DJANGO_DEBUG", default=False)
 
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 

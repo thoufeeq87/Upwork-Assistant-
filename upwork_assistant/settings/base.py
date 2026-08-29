@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "corsheaders",
     "jobs",
     "ingestion",
     "screenshots",
@@ -33,6 +34,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -113,3 +115,12 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
 }
+
+# CORS: scoped to just the screenshot-upload API, which the Chrome extension's
+# popup page calls cross-origin (chrome-extension://<id>). That call carries
+# no cookies — it's authenticated by a static bearer token instead — so
+# allowing any origin on this one endpoint doesn't weaken anything; the
+# token is the real access boundary. Every other URL in the app (dashboard,
+# admin, OAuth) is untouched by this and stays same-origin only.
+CORS_URLS_REGEX = r"^/api/screenshots/"
+CORS_ALLOW_ALL_ORIGINS = True

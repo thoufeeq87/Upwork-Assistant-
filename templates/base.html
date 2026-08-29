@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Upwork Assistant{% endblock %}</title>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script>
+    function getCookie(name) {
+      const match = document.cookie.match('(?:^|; )' + name + '=([^;]*)');
+      return match ? decodeURIComponent(match[1]) : null;
+    }
+    document.addEventListener('htmx:configRequest', (event) => {
+      event.detail.headers['X-CSRFToken'] = getCookie('csrftoken');
+    });
+  </script>
   <style>
     body { font-family: -apple-system, sans-serif; margin: 0; background: #f7f7f8; color: #1a1a1a; }
     header { background: #1a1a1a; color: #fff; padding: 0.75rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }

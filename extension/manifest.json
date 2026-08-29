@@ -7,7 +7,7 @@
   "host_permissions": [
     "http://127.0.0.1:8000/*",
     "http://localhost:8000/*",
-    "https://YOUR-APP.up.railway.app/*"
+    "https://upwork-assistant.up.railway.app/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",

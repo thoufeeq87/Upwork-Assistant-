@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Upwork Assistant{% endblock %}</title>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    body { font-family: -apple-system, sans-serif; margin: 0; background: #f7f7f8; color: #1a1a1a; }
+    header { background: #1a1a1a; color: #fff; padding: 0.75rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+    header a { color: #fff; text-decoration: none; font-weight: 600; }
+    main { max-width: 960px; margin: 1.5rem auto; padding: 0 1rem; }
+    .card { background: #fff; border: 1px solid #e2e2e2; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
+    .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+    .badge-unknown { background: #eee; color: #555; }
+    .badge-single { background: #dff5e1; color: #1e7a34; }
+    .badge-multiple { background: #fde9d7; color: #a35a15; }
+    .status { font-size: 0.75rem; color: #777; text-transform: uppercase; letter-spacing: 0.03em; }
+    a.job-title { color: #1a1a1a; text-decoration: none; font-weight: 600; }
+    a.job-title:hover { text-decoration: underline; }
+    .filters { margin-bottom: 1rem; }
+    .filters a { margin-right: 0.75rem; font-size: 0.9rem; color: #444; text-decoration: none; }
+    .filters a.active { font-weight: 700; color: #1a1a1a; }
+    button, .btn { background: #1a1a1a; color: #fff; border: none; border-radius: 6px; padding: 0.5rem 1rem; cursor: pointer; font-size: 0.9rem; }
+    textarea { width: 100%; box-sizing: border-box; }
+    .htmx-indicator { opacity: 0; transition: opacity 200ms ease-in; }
+    .htmx-request.htmx-indicator, .htmx-request .htmx-indicator { opacity: 1; }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="{% url 'jobs:dashboard' %}">Upwork Assistant</a>
+    {% if user.is_authenticated %}
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit">Log out</button></form>
+    {% endif %}
+  </header>
+  <main>
+    {% for message in messages %}<div class="card">{{ message }}</div>{% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

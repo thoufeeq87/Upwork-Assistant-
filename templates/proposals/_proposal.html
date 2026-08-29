@@ -1,0 +1,13 @@
+<div id="proposal-section">
+  {% if error %}<p style="color:#a33;">{{ error }}</p>{% endif %}
+  {% if proposal %}
+    <div class="card">
+      <textarea id="proposal-text" rows="16" readonly>{{ proposal.text }}</textarea>
+      <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('proposal-text').value)">
+        Copy to clipboard
+      </button>
+    </div>
+  {% else %}
+    <p>No proposal yet — select a hook and generate one.</p>
+  {% endif %}
+</div>

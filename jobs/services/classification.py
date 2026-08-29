@@ -19,6 +19,9 @@ MULTIPLE_PATTERNS = [
     r"looking for freelancers\b",
     r"hiring \d+\+?\s*(freelancers|people|developers|writers)",
     r"\d+\s*(freelancers|people)\s*needed",
+    r"\btesters\b",
+    r"\bpeople\b",
+    r"\bseveral\b",
 ]
 
 SINGLE_PATTERNS = [
@@ -26,6 +29,15 @@ SINGLE_PATTERNS = [
     r"\ba single freelancer\b",
     r"looking for a freelancer\b",
     r"hiring 1 freelancer",
+    r"\bsomeone\b",
+    r"\btester\b",
+    r"\bfreelancer\b",
+    # Singular "a/an <role>" for any position, e.g. "a developer", "an editor",
+    # "a writer", "a designer", "an analyst" — a broad proxy for "hiring one
+    # of a given role" rather than a fixed list of job titles. Deliberately
+    # loose (this whole heuristic is best-effort triage, not ground truth)
+    # so it will also catch some false positives like "a paper" or "a lawyer".
+    r"\ban?\s+\w+(?:er|or|ist)\b",
 ]
 
 

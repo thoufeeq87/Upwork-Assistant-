@@ -31,7 +31,4 @@ AWS_S3_FILE_OVERWRITE = False
 AWS_QUERYSTRING_AUTH = env.bool("AWS_QUERYSTRING_AUTH", default=True)
 
 if AWS_STORAGE_BUCKET_NAME:
-    STORAGES = {
-        "default": {"BACKEND": "storages.backends.s3.S3Storage"},
-        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
-    }
+    STORAGES = {**STORAGES, "default": {"BACKEND": "storages.backends.s3.S3Storage"}}

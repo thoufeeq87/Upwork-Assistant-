@@ -1,7 +1,9 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from .models import Job
+from .services.classification import record_correction
 
 
 @login_required
@@ -32,4 +34,21 @@ def dashboard(request):
 @login_required
 def job_detail(request, pk):
     job = get_object_or_404(Job, pk=pk)
-    return render(request, "jobs/detail.html", {"job": job})
+    return render(
+        request,
+        "jobs/detail.html",
+        {"job": job, "freelancer_type_choices": Job.FreelancerType.choices},
+    )
+
+
+@login_required
+@require_POST
+def correct_freelancer_type(request, pk):
+    job = get_object_or_404(Job, pk=pk)
+    corrected_type = request.POST.get("freelancer_type", "")
+    reason = request.POST.get("reason", "").strip()
+
+    if corrected_type in Job.FreelancerType.values:
+        record_correction(job, corrected_type, reason)
+
+    return redirect("jobs:detail", pk=job.pk)

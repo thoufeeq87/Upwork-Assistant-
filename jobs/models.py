@@ -50,3 +50,49 @@ class Job(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class FreelancerTypeCorrection(models.Model):
+    """A manual freelancer_type correction on a Job, with the reason the
+    user gave. The reason is mined for keywords that feed LearnedKeyword,
+    so future jobs with similar wording classify correctly automatically."""
+
+    job = models.ForeignKey(Job, related_name="freelancer_type_corrections", on_delete=models.CASCADE)
+    previous_type = models.CharField(max_length=16, choices=Job.FreelancerType.choices)
+    corrected_type = models.CharField(max_length=16, choices=Job.FreelancerType.choices)
+    reason = models.TextField(
+        blank=True,
+        help_text="Why this job is actually single/multiple — e.g. \"mentions team of 3 testers\". Mined for keywords the classifier learns from.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.job.title}: {self.previous_type} -> {self.corrected_type}"
+
+
+class LearnedKeyword(models.Model):
+    """A phrase mined from a correction's reason, associated with the
+    freelancer_type it signals. classify_with_learned_keywords() checks
+    these as a fallback when the static regex heuristic returns unknown."""
+
+    phrase = models.CharField(max_length=100)
+    freelancer_type = models.CharField(
+        max_length=16,
+        choices=[
+            (Job.FreelancerType.SINGLE, "Single freelancer"),
+            (Job.FreelancerType.MULTIPLE, "Multiple freelancers"),
+        ],
+    )
+    weight = models.PositiveIntegerField(default=1, help_text="Incremented each time a new correction reinforces this phrase.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("phrase", "freelancer_type")
+        ordering = ["-weight", "phrase"]
+
+    def __str__(self):
+        return f'"{self.phrase}" -> {self.freelancer_type} (x{self.weight})'

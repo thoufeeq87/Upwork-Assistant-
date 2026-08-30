@@ -1,16 +1,22 @@
 from django.core.management.base import BaseCommand
 
 from jobs.models import Job
-from jobs.services.classification import classify
+from jobs.services.classification import classify_with_learned_keywords
 
 
 class Command(BaseCommand):
-    help = "Re-run the freelancer-type heuristic against all jobs' snippet_text without re-ingesting."
+    help = (
+        "Re-run the freelancer-type heuristic (including learned keywords from "
+        "corrections) against jobs' snippet_text without re-ingesting. Skips any "
+        "job with a manual correction on record, so this never overwrites a "
+        "correction you already made."
+    )
 
     def handle(self, *args, **options):
         updated = 0
-        for job in Job.objects.all():
-            freelancer_type, meta = classify(job.snippet_text)
+        jobs = Job.objects.filter(freelancer_type_corrections__isnull=True)
+        for job in jobs:
+            freelancer_type, meta = classify_with_learned_keywords(job.snippet_text)
             if freelancer_type != job.freelancer_type or meta != job.classification_meta:
                 job.freelancer_type = freelancer_type
                 job.classification_meta = meta

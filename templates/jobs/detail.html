@@ -12,6 +12,36 @@
 </div>
 
 <div class="card">
+  <h3>Freelancer type</h3>
+  <p style="color:#666; font-size:0.85rem;">Wrong? Correct it below and explain why — the reason teaches the classifier so similar jobs get it right automatically next time.</p>
+  <form method="post" action="{% url 'jobs:correct_freelancer_type' job.id %}">
+    {% csrf_token %}
+    <label for="id_freelancer_type" style="display:block; font-weight:600; font-size:0.85rem; margin-bottom:0.25rem;">Correct type</label>
+    <select name="freelancer_type" id="id_freelancer_type" style="padding:0.4rem; border-radius:6px; border:1px solid #ddd;">
+      {% for value, label in freelancer_type_choices %}
+        <option value="{{ value }}" {% if value == job.freelancer_type %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <label for="id_reason" style="display:block; font-weight:600; font-size:0.85rem; margin-top:0.6rem; margin-bottom:0.25rem;">Reason (optional, but teaches the system)</label>
+    <textarea name="reason" id="id_reason" rows="2" placeholder="e.g. mentions &quot;team of 3 testers needed&quot;" style="padding:0.4rem; border-radius:6px; border:1px solid #ddd;"></textarea>
+    <div style="margin-top:0.6rem;"><button type="submit">Save correction</button></div>
+  </form>
+  {% with corrections=job.freelancer_type_corrections.all %}
+    {% if corrections %}
+      <details style="margin-top:0.75rem;">
+        <summary style="cursor:pointer; font-size:0.85rem; color:#555;">Correction history ({{ corrections|length }})</summary>
+        {% for c in corrections %}
+          <p style="font-size:0.85rem; color:#555; margin:0.4rem 0;">
+            {{ c.created_at|date:"M j, Y H:i" }} — {{ c.get_previous_type_display }} &rarr; {{ c.get_corrected_type_display }}
+            {% if c.reason %}: &ldquo;{{ c.reason }}&rdquo;{% endif %}
+          </p>
+        {% endfor %}
+      </details>
+    {% endif %}
+  {% endwith %}
+</div>
+
+<div class="card">
   <h3>Screenshots ({{ job.screenshots.count }})</h3>
   {% for shot in job.screenshots.all %}
     <img src="{{ shot.image.url }}" alt="Screenshot {{ shot.order }}" style="max-width: 100%; margin-bottom: 0.5rem; border: 1px solid #ddd;">

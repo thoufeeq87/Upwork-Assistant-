@@ -1,7 +1,8 @@
-from django.test import SimpleTestCase
+from django.test import Client, SimpleTestCase, TestCase
+from django.contrib.auth.models import User
 
-from .models import Job
-from .services.classification import classify
+from .models import FreelancerTypeCorrection, Job, LearnedKeyword
+from .services.classification import classify, classify_with_learned_keywords, record_correction
 from .utils import extract_job_uid
 
 
@@ -57,6 +58,102 @@ class ClassifyTests(SimpleTestCase):
     def test_empty_text_is_unknown(self):
         freelancer_type, _ = classify("")
         self.assertEqual(freelancer_type, Job.FreelancerType.UNKNOWN)
+
+
+class LearningFromCorrectionsTests(TestCase):
+    def setUp(self):
+        self.job = Job.objects.create(
+            title="Mystery job",
+            upwork_url="https://www.upwork.com/jobs/~999",
+            job_uid="~999",
+            snippet_text="This posting mentions a crew of testers needed for the sprint.",
+            freelancer_type=Job.FreelancerType.UNKNOWN,
+        )
+
+    def test_record_correction_updates_job_and_creates_history(self):
+        record_correction(self.job, Job.FreelancerType.MULTIPLE, reason="mentions crew of testers")
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.freelancer_type, Job.FreelancerType.MULTIPLE)
+        self.assertEqual(FreelancerTypeCorrection.objects.filter(job=self.job).count(), 1)
+        correction = FreelancerTypeCorrection.objects.get(job=self.job)
+        self.assertEqual(correction.previous_type, Job.FreelancerType.UNKNOWN)
+        self.assertEqual(correction.corrected_type, Job.FreelancerType.MULTIPLE)
+
+    def test_record_correction_learns_keywords_from_reason(self):
+        record_correction(self.job, Job.FreelancerType.MULTIPLE, reason="mentions crew of testers")
+        self.assertTrue(LearnedKeyword.objects.filter(phrase="crew", freelancer_type=Job.FreelancerType.MULTIPLE).exists())
+        self.assertTrue(
+            LearnedKeyword.objects.filter(phrase="crew testers", freelancer_type=Job.FreelancerType.MULTIPLE).exists()
+        )
+        # Filler words from the reason shouldn't become keywords.
+        self.assertFalse(LearnedKeyword.objects.filter(phrase="mentions").exists())
+
+    def test_repeated_reason_increments_weight_instead_of_duplicating(self):
+        record_correction(self.job, Job.FreelancerType.MULTIPLE, reason="says crew needed")
+        other_job = Job.objects.create(
+            title="Another job", upwork_url="https://www.upwork.com/jobs/~998", job_uid="~998"
+        )
+        record_correction(other_job, Job.FreelancerType.MULTIPLE, reason="says crew again")
+        keyword = LearnedKeyword.objects.get(phrase="crew", freelancer_type=Job.FreelancerType.MULTIPLE)
+        self.assertEqual(keyword.weight, 2)
+
+    def test_classify_with_learned_keywords_falls_back_when_static_is_unknown(self):
+        record_correction(self.job, Job.FreelancerType.MULTIPLE, reason="mentions a crew for this")
+        # A brand new job whose snippet contains the learned phrase, but
+        # nothing the static regex heuristic would catch on its own.
+        freelancer_type, meta = classify_with_learned_keywords("Small crew wanted for a weekend shoot.")
+        self.assertEqual(freelancer_type, Job.FreelancerType.MULTIPLE)
+        self.assertIn("crew", meta["learned_multiple_hits"])
+
+    def test_static_heuristic_still_wins_over_learned_keywords(self):
+        """A learned keyword must never override a confident static match."""
+        record_correction(self.job, Job.FreelancerType.MULTIPLE, reason="mentions crew")
+        freelancer_type, meta = classify_with_learned_keywords("Looking for a freelancer — small crew project.")
+        self.assertEqual(freelancer_type, Job.FreelancerType.SINGLE)
+        self.assertNotIn("learned_multiple_hits", meta)
+
+    def test_reclassify_jobs_skips_manually_corrected_jobs(self):
+        from django.core.management import call_command
+
+        record_correction(self.job, Job.FreelancerType.SINGLE, reason="actually just one tester")
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.freelancer_type, Job.FreelancerType.SINGLE)
+
+        call_command("reclassify_jobs")
+
+        self.job.refresh_from_db()
+        # Static/learned heuristics would call this snippet MULTIPLE (it
+        # matches "testers"), but the manual correction must survive.
+        self.assertEqual(self.job.freelancer_type, Job.FreelancerType.SINGLE)
+
+
+class CorrectFreelancerTypeViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="admin", password="testpass123")
+        self.job = Job.objects.create(
+            title="Test job", upwork_url="https://www.upwork.com/jobs/~1", job_uid="~1"
+        )
+        self.client = Client()
+        self.client.force_login(self.user)
+
+    def test_post_updates_freelancer_type_and_redirects(self):
+        resp = self.client.post(
+            f"/jobs/{self.job.pk}/correct-freelancer-type/",
+            {"freelancer_type": Job.FreelancerType.MULTIPLE, "reason": "mentions a small crew"},
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.freelancer_type, Job.FreelancerType.MULTIPLE)
+        self.assertEqual(FreelancerTypeCorrection.objects.filter(job=self.job).count(), 1)
+
+    def test_requires_login(self):
+        anon_client = Client()
+        resp = anon_client.post(
+            f"/jobs/{self.job.pk}/correct-freelancer-type/",
+            {"freelancer_type": Job.FreelancerType.MULTIPLE, "reason": ""},
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("/login/", resp.get("Location", ""))
 
 
 class ExtractJobUidTests(SimpleTestCase):

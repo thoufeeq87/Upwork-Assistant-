@@ -4,7 +4,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from jobs.models import Job
-from jobs.services.classification import classify
+from jobs.services.classification import classify_with_learned_keywords
 
 from . import gmail_client
 from .models import GmailSyncState
@@ -25,7 +25,7 @@ def sync_new_alerts() -> int:
     for message_id in message_ids:
         html, internal_date = gmail_client.get_message_html(service, message_id)
         for parsed in parse_alert_email(html):
-            freelancer_type, meta = classify(parsed.snippet)
+            freelancer_type, meta = classify_with_learned_keywords(parsed.snippet)
             _, was_created = Job.objects.get_or_create(
                 job_uid=parsed.job_uid,
                 defaults={

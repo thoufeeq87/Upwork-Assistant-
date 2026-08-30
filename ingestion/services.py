@@ -34,7 +34,7 @@ def sync_new_alerts() -> int:
                     "upwork_url": parsed.url,
                     "freelancer_type": freelancer_type,
                     "classification_meta": meta,
-                    "posted_at": datetime.fromisoformat(internal_date),
+                    "email_received_at": datetime.fromisoformat(internal_date),
                 },
             )
             if was_created:

@@ -6,10 +6,13 @@
     <h1>Jobs</h1>
     <p class="hint" style="margin:0;">{{ jobs|length }} job{{ jobs|length|pluralize }} in this view</p>
   </div>
-  <form method="post" action="{% url 'ingestion:sync_now' %}">
-    {% csrf_token %}
-    <button type="submit">Sync Now</button>
-  </form>
+  <div style="display:flex; gap:0.5rem;">
+    <a href="{% url 'jobs:add_job' %}" class="btn" style="text-decoration:none; display:inline-block;">+ Add job</a>
+    <form method="post" action="{% url 'ingestion:sync_now' %}">
+      {% csrf_token %}
+      <button type="submit">Sync Now</button>
+    </form>
+  </div>
 </div>
 
 <div class="filters">

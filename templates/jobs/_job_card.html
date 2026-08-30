@@ -1,0 +1,19 @@
+<div class="card" id="job-{{ job.id }}">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+    <div class="status">{{ job.get_status_display }}</div>
+    <div class="job-actions">
+      {% include "jobs/_favorite_button.html" %}
+      <button type="button" class="icon-btn"
+              title="Not interested — hide from list"
+              hx-post="{% url 'jobs:skip_job' job.id %}"
+              hx-target="#job-{{ job.id }}" hx-swap="outerHTML"
+              hx-confirm="Hide this job from your list? (It's kept, not deleted — find it again under the Skipped filter.)">
+        &#128078;
+      </button>
+    </div>
+  </div>
+  <a class="job-title" href="{% url 'jobs:detail' job.pk %}">{{ job.title }}</a>
+  <span class="badge badge-{{ job.freelancer_type }}">{{ job.get_freelancer_type_display }}</span>
+  <p>{{ job.snippet_text|truncatewords:40 }}</p>
+  <a href="{{ job.upwork_url }}" target="_blank" rel="noopener">Open on Upwork &rarr;</a>
+</div>

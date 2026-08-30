@@ -23,15 +23,16 @@
     <a href="?freelancer_type={{ value }}{% if current_status %}&status={{ current_status }}{% endif %}" class="{% if current_freelancer_type == value %}active{% endif %}">{{ label }}</a>
   {% endfor %}
 </div>
+<div class="filters">
+  {% if favorites_only %}
+    <a href="?{% if current_status %}status={{ current_status }}{% endif %}{% if current_freelancer_type %}&freelancer_type={{ current_freelancer_type }}{% endif %}" class="active">&#9829; Favorites only</a>
+  {% else %}
+    <a href="?favorite=1{% if current_status %}&status={{ current_status }}{% endif %}{% if current_freelancer_type %}&freelancer_type={{ current_freelancer_type }}{% endif %}">&#9825; Show favorites only</a>
+  {% endif %}
+</div>
 
 {% for job in jobs %}
-<div class="card">
-  <div class="status">{{ job.get_status_display }}</div>
-  <a class="job-title" href="{% url 'jobs:detail' job.pk %}">{{ job.title }}</a>
-  <span class="badge badge-{{ job.freelancer_type }}">{{ job.get_freelancer_type_display }}</span>
-  <p>{{ job.snippet_text|truncatewords:40 }}</p>
-  <a href="{{ job.upwork_url }}" target="_blank" rel="noopener">Open on Upwork &rarr;</a>
-</div>
+  {% include "jobs/_job_card.html" %}
 {% empty %}
 <p>No jobs yet. Click "Sync Now" once Gmail ingestion is configured.</p>
 {% endfor %}

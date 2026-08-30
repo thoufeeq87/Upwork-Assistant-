@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -13,10 +14,18 @@ def dashboard(request):
     status = request.GET.get("status")
     if status:
         jobs = jobs.filter(status=status)
+    else:
+        # Thumbs-down soft-hides a job by marking it Skipped — the default
+        # "All" view should exclude those. The Skipped tab still shows them.
+        jobs = jobs.exclude(status=Job.Status.SKIPPED)
 
     freelancer_type = request.GET.get("freelancer_type")
     if freelancer_type:
         jobs = jobs.filter(freelancer_type=freelancer_type)
+
+    favorites_only = request.GET.get("favorite") == "1"
+    if favorites_only:
+        jobs = jobs.filter(is_favorite=True)
 
     return render(
         request,
@@ -27,6 +36,7 @@ def dashboard(request):
             "freelancer_type_choices": Job.FreelancerType.choices,
             "current_status": status or "",
             "current_freelancer_type": freelancer_type or "",
+            "favorites_only": favorites_only,
         },
     )
 
@@ -52,3 +62,29 @@ def correct_freelancer_type(request, pk):
         record_correction(job, corrected_type, reason)
 
     return redirect("jobs:detail", pk=job.pk)
+
+
+@login_required
+@require_POST
+def toggle_favorite(request, pk):
+    job = get_object_or_404(Job, pk=pk)
+    job.is_favorite = not job.is_favorite
+    job.save(update_fields=["is_favorite", "updated_at"])
+
+    if request.headers.get("HX-Request"):
+        return render(request, "jobs/_favorite_button.html", {"job": job})
+    return redirect(request.META.get("HTTP_REFERER") or "jobs:dashboard")
+
+
+@login_required
+@require_POST
+def skip_job(request, pk):
+    job = get_object_or_404(Job, pk=pk)
+    job.status = Job.Status.SKIPPED
+    job.save(update_fields=["status", "updated_at"])
+
+    if request.headers.get("HX-Request"):
+        # Card disappears from the current list; the job itself is kept
+        # (soft-hide, not deleted) and still reachable via the Skipped filter.
+        return HttpResponse("")
+    return redirect(request.META.get("HTTP_REFERER") or "jobs:dashboard")

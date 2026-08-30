@@ -41,6 +41,7 @@ class Job(models.Model):
         default=dict, blank=True, help_text="Matched keywords/rules from the classifier, for debugging."
     )
     status = models.CharField(max_length=32, choices=Status.choices, default=Status.NEW)
+    is_favorite = models.BooleanField(default=False, help_text="Starred jobs are also protected from the retention purge.")
     posted_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -99,6 +99,11 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "jobs:dashboard"
 LOGOUT_REDIRECT_URL = "login"
 
+# --- Job retention (jobs app) ---
+# purge_old_jobs deletes jobs (and their screenshots/hooks/proposals) older
+# than this many days. Favorited jobs are always exempt.
+JOB_RETENTION_DAYS = env.int("JOB_RETENTION_DAYS", default=10)
+
 # --- Gmail (ingestion app) ---
 GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID", default="")
 GOOGLE_OAUTH_CLIENT_SECRET = env("GOOGLE_OAUTH_CLIENT_SECRET", default="")

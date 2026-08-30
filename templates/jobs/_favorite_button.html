@@ -1,0 +1,6 @@
+<button type="button" id="favorite-btn-{{ job.id }}" class="icon-btn {% if job.is_favorite %}is-favorite{% endif %}"
+        title="{% if job.is_favorite %}Remove from favorites{% else %}Add to favorites{% endif %}"
+        hx-post="{% url 'jobs:toggle_favorite' job.id %}"
+        hx-target="#favorite-btn-{{ job.id }}" hx-swap="outerHTML">
+  {% if job.is_favorite %}&#9829;{% else %}&#9825;{% endif %}
+</button>

@@ -4,7 +4,17 @@
 <p><a href="{% url 'jobs:dashboard' %}">&larr; Back to dashboard</a></p>
 
 <div class="card">
-  <div class="status">{{ job.get_status_display }}</div>
+  <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+    <div class="status">{{ job.get_status_display }}</div>
+    <div class="job-actions">
+      {% include "jobs/_favorite_button.html" %}
+      <form method="post" action="{% url 'jobs:skip_job' job.id %}" style="display:inline;"
+            onsubmit="return confirm('Hide this job from your list? It\'s kept, not deleted — find it again under the Skipped filter on the dashboard.');">
+        {% csrf_token %}
+        <button type="submit" class="icon-btn" title="Not interested — hide from list">&#128078;</button>
+      </form>
+    </div>
+  </div>
   <h1>{{ job.title }}</h1>
   <span class="badge badge-{{ job.freelancer_type }}">{{ job.get_freelancer_type_display }}</span>
   <p>{{ job.snippet_text }}</p>

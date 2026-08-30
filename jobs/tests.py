@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.test import Client, SimpleTestCase, TestCase
 from django.contrib.auth.models import User
 
@@ -154,6 +156,106 @@ class CorrectFreelancerTypeViewTests(TestCase):
         )
         self.assertEqual(resp.status_code, 302)
         self.assertIn("/login/", resp.get("Location", ""))
+
+
+class FavoriteAndSkipTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="admin2", password="testpass123")
+        self.job = Job.objects.create(
+            title="Toggle job", upwork_url="https://www.upwork.com/jobs/~2", job_uid="~2"
+        )
+        self.client = Client()
+        self.client.force_login(self.user)
+
+    def test_toggle_favorite_flips_flag(self):
+        self.assertFalse(self.job.is_favorite)
+        self.client.post(f"/jobs/{self.job.pk}/toggle-favorite/")
+        self.job.refresh_from_db()
+        self.assertTrue(self.job.is_favorite)
+        self.client.post(f"/jobs/{self.job.pk}/toggle-favorite/")
+        self.job.refresh_from_db()
+        self.assertFalse(self.job.is_favorite)
+
+    def test_toggle_favorite_htmx_returns_button_partial_not_whole_card(self):
+        resp = self.client.post(f"/jobs/{self.job.pk}/toggle-favorite/", HTTP_HX_REQUEST="true")
+        content = resp.content.decode()
+        self.assertIn("favorite-btn", content)
+        # Must not be the full card partial (no snippet text or "Open on Upwork").
+        self.assertNotIn("Open on Upwork", content)
+
+    def test_skip_sets_status_and_does_not_delete(self):
+        self.client.post(f"/jobs/{self.job.pk}/skip/")
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.status, Job.Status.SKIPPED)
+        self.assertTrue(Job.objects.filter(pk=self.job.pk).exists())
+
+    def test_skip_htmx_returns_empty_response(self):
+        resp = self.client.post(f"/jobs/{self.job.pk}/skip/", HTTP_HX_REQUEST="true")
+        self.assertEqual(resp.content, b"")
+
+    def test_dashboard_excludes_skipped_by_default(self):
+        self.client.post(f"/jobs/{self.job.pk}/skip/")
+        resp = self.client.get("/")
+        self.assertNotIn(self.job.title, resp.content.decode())
+
+    def test_dashboard_shows_skipped_under_explicit_filter(self):
+        self.client.post(f"/jobs/{self.job.pk}/skip/")
+        resp = self.client.get(f"/?status={Job.Status.SKIPPED}")
+        self.assertIn(self.job.title, resp.content.decode())
+
+    def test_dashboard_favorites_only_filter(self):
+        other = Job.objects.create(
+            title="Not favorited", upwork_url="https://www.upwork.com/jobs/~3", job_uid="~3"
+        )
+        self.client.post(f"/jobs/{self.job.pk}/toggle-favorite/")
+        resp = self.client.get("/?favorite=1")
+        content = resp.content.decode()
+        self.assertIn(self.job.title, content)
+        self.assertNotIn(other.title, content)
+
+
+class PurgeOldJobsTests(TestCase):
+    def test_purges_only_jobs_older_than_retention_and_not_favorited(self):
+        from django.core.management import call_command
+        from django.utils import timezone
+
+        old_job = Job.objects.create(
+            title="Old job", upwork_url="https://www.upwork.com/jobs/~10", job_uid="~10"
+        )
+        Job.objects.filter(pk=old_job.pk).update(created_at=timezone.now() - timedelta(days=15))
+
+        old_favorite = Job.objects.create(
+            title="Old favorite", upwork_url="https://www.upwork.com/jobs/~11", job_uid="~11", is_favorite=True
+        )
+        Job.objects.filter(pk=old_favorite.pk).update(created_at=timezone.now() - timedelta(days=15))
+
+        recent_job = Job.objects.create(
+            title="Recent job", upwork_url="https://www.upwork.com/jobs/~12", job_uid="~12"
+        )
+
+        call_command("purge_old_jobs")
+
+        self.assertFalse(Job.objects.filter(pk=old_job.pk).exists())
+        self.assertTrue(Job.objects.filter(pk=old_favorite.pk).exists())
+        self.assertTrue(Job.objects.filter(pk=recent_job.pk).exists())
+
+    def test_purge_cascades_to_screenshots(self):
+        from django.core.management import call_command
+        from django.core.files.base import ContentFile
+        from django.utils import timezone
+        from screenshots.models import JobScreenshot
+
+        old_job = Job.objects.create(
+            title="Old job with screenshot", upwork_url="https://www.upwork.com/jobs/~13", job_uid="~13"
+        )
+        Job.objects.filter(pk=old_job.pk).update(created_at=timezone.now() - timedelta(days=15))
+        shot = JobScreenshot(job=old_job, order=0)
+        shot.image.save("test.png", ContentFile(b"fake-png-bytes"), save=True)
+        shot_id = shot.id
+
+        call_command("purge_old_jobs")
+
+        self.assertFalse(JobScreenshot.objects.filter(pk=shot_id).exists())
 
 
 class ExtractJobUidTests(SimpleTestCase):

@@ -16,37 +16,49 @@
   </script>
   <style>
     :root {
-      --ink: #14151a;
-      --ink-soft: #62636d;
-      --ink-faint: #9a9ba4;
-      --paper: #ffffff;
-      --bg: #f4f4f6;
-      --line: #e6e7eb;
-      --line-soft: #eef0f2;
-      --accent: #14151a;
-      --accent-ring: rgba(20, 21, 26, 0.10);
-      --success-bg: #e3f6e8; --success-fg: #1c7a3c;
-      --warn-bg: #fdecd8; --warn-fg: #9a5613;
-      --neutral-bg: #eef0f2; --neutral-fg: #62636d;
-      --danger: #b3261e; --danger-bg: #fdecea;
-      --favorite: #c2185b; --favorite-bg: #fde8ec; --favorite-line: #f6c6d3;
-      --radius-lg: 14px;
-      --radius-md: 10px;
-      --radius-sm: 8px;
-      --shadow-card: 0 1px 2px rgba(20,21,26,0.04), 0 1px 1px rgba(20,21,26,0.03);
+      --ink: #f3f4f7;
+      --ink-soft: #9497a8;
+      --ink-faint: #6b6e80;
+      --paper: #14151f;
+      --paper-2: #1a1c28;
+      --bg: #0a0a12;
+      --line: rgba(255,255,255,0.09);
+      --line-soft: rgba(255,255,255,0.05);
+      --pink: #ec5c9d;
+      --pink-soft: rgba(236,92,157,0.14);
+      --green: #34d399;
+      --green-soft: rgba(52,211,153,0.14);
+      --amber: #fbbf5f;
+      --amber-soft: rgba(251,191,95,0.14);
+      --accent: var(--pink);
+      --accent-ring: rgba(236,92,157,0.22);
+      --success-bg: var(--green-soft); --success-fg: var(--green);
+      --warn-bg: var(--amber-soft); --warn-fg: var(--amber);
+      --neutral-bg: rgba(255,255,255,0.06); --neutral-fg: var(--ink-soft);
+      --danger: #f87171; --danger-bg: rgba(248,113,113,0.14);
+      --favorite: var(--pink); --favorite-bg: var(--pink-soft); --favorite-line: rgba(236,92,157,0.35);
+      --radius-lg: 18px;
+      --radius-md: 13px;
+      --radius-sm: 10px;
+      --shadow-card: 0 1px 0 rgba(255,255,255,0.04) inset, 0 10px 30px -18px rgba(0,0,0,0.6);
     }
     * { box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       margin: 0;
-      background: var(--bg);
+      background:
+        radial-gradient(900px 460px at 8% -8%, rgba(236,92,157,0.10) 0%, transparent 55%),
+        radial-gradient(800px 420px at 105% 12%, rgba(52,211,153,0.08) 0%, transparent 55%),
+        var(--bg);
       color: var(--ink);
       -webkit-font-smoothing: antialiased;
     }
 
     /* Header */
     header {
-      background: var(--ink);
+      background: rgba(10,10,18,0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line-soft);
       color: #fff;
       padding: 0.85rem 1.5rem;
       display: flex;
@@ -58,27 +70,29 @@
     }
     .brand { display: flex; align-items: center; gap: 9px; text-decoration: none; }
     .brand-mark {
-      width: 26px; height: 26px; border-radius: 7px; background: #fff;
+      width: 28px; height: 28px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--pink), #f472b6);
       display: flex; align-items: center; justify-content: center; flex: none;
+      box-shadow: 0 0 16px rgba(236,92,157,0.45);
     }
-    .brand-mark svg { width: 14px; height: 14px; }
-    .brand-name { color: #f4f4f6; font-weight: 650; font-size: 0.98rem; letter-spacing: -0.01em; }
+    .brand-mark svg { width: 15px; height: 15px; }
+    .brand-name { color: var(--ink); font-weight: 650; font-size: 0.98rem; letter-spacing: -0.01em; }
     header form { margin: 0; }
     header .btn-ghost {
-      background: transparent; color: #d3d4d9; border: 1px solid #34353d;
-      padding: 0.4rem 0.85rem; font-size: 0.82rem; font-weight: 600; border-radius: var(--radius-sm);
+      background: transparent; color: var(--ink-soft); border: 1px solid var(--line);
+      padding: 0.4rem 0.85rem; font-size: 0.82rem; font-weight: 600; border-radius: 999px;
     }
-    header .btn-ghost:hover { background: #1f2028; color: #fff; }
+    header .btn-ghost:hover { background: var(--paper-2); color: var(--ink); }
 
     main { max-width: 900px; margin: 1.75rem auto 4rem; padding: 0 1.25rem; }
 
-    h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -0.015em; margin: 0 0 0.2rem; }
-    h2 { font-size: 1.15rem; font-weight: 650; letter-spacing: -0.01em; margin: 0; }
+    h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -0.015em; margin: 0 0 0.2rem; color: var(--ink); }
+    h2 { font-size: 1.15rem; font-weight: 650; letter-spacing: -0.01em; margin: 0; color: var(--ink); }
     h3 {
-      font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+      font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
       color: var(--ink-soft); margin: 0 0 0.85rem;
     }
-    p { line-height: 1.5; }
+    p { line-height: 1.55; color: var(--ink); }
 
     /* Cards */
     .card {
@@ -89,11 +103,11 @@
       padding: 1.15rem 1.3rem;
       margin-bottom: 0.9rem;
     }
-    .flash { background: #eef7ff; border-color: #cfe6ff; color: #1a4a7a; font-size: 0.88rem; }
+    .flash { background: rgba(96,165,250,0.10); border-color: rgba(96,165,250,0.28); color: #93c5fd; font-size: 0.88rem; }
 
     /* Badges */
     .badge {
-      display: inline-block; padding: 0.22rem 0.65rem; border-radius: 999px;
+      display: inline-block; padding: 0.24rem 0.7rem; border-radius: 999px;
       font-size: 0.72rem; font-weight: 650; letter-spacing: 0.01em;
     }
     .badge-unknown { background: var(--neutral-bg); color: var(--neutral-fg); }
@@ -109,11 +123,11 @@
       color: var(--ink); text-decoration: none; font-weight: 650; font-size: 1.02rem;
       display: block; margin: 0.35rem 0 0.5rem;
     }
-    a.job-title:hover { text-decoration: underline; }
+    a.job-title:hover { color: var(--pink); }
 
-    a { color: var(--ink); }
+    a { color: var(--pink); }
     a.link {
-      color: var(--ink); font-weight: 600; font-size: 0.86rem; text-decoration: none;
+      color: var(--pink); font-weight: 600; font-size: 0.86rem; text-decoration: none;
     }
     a.link:hover { text-decoration: underline; }
 
@@ -126,43 +140,44 @@
     .filters a {
       display: inline-block; padding: 0.3rem 0.75rem; border-radius: 999px;
       font-size: 0.83rem; font-weight: 600; color: var(--ink-soft); text-decoration: none;
-      border: 1px solid transparent;
+      border: 1px solid var(--line);
     }
-    .filters a:hover { background: var(--line-soft); }
-    .filters a.active { background: var(--ink); color: #fff; }
+    .filters a:hover { background: var(--paper-2); color: var(--ink); }
+    .filters a.active { background: var(--green); color: #08130e; border-color: var(--green); }
 
     /* Buttons */
     button, .btn {
-      background: var(--ink); color: #fff; border: none; border-radius: var(--radius-sm);
-      padding: 0.55rem 1.05rem; cursor: pointer; font-size: 0.88rem; font-weight: 600;
-      transition: opacity 120ms ease;
+      background: var(--green); color: #08130e; border: none; border-radius: 999px;
+      padding: 0.6rem 1.15rem; cursor: pointer; font-size: 0.88rem; font-weight: 650;
+      transition: opacity 120ms ease, transform 80ms ease;
     }
-    button:hover, .btn:hover { opacity: 0.9; }
+    button:hover, .btn:hover { opacity: 0.88; }
     button:active, .btn:active { transform: translateY(1px); }
-    button:disabled { opacity: 0.5; cursor: default; }
+    button:disabled { opacity: 0.4; cursor: default; }
 
     .job-actions { display: flex; gap: 0.4rem; }
     .icon-btn {
-      background: var(--neutral-bg); color: var(--ink-soft); border: 1px solid var(--line);
-      border-radius: var(--radius-sm); padding: 0.32rem 0.6rem; font-size: 1rem; line-height: 1;
+      background: var(--paper-2); color: var(--ink-soft); border: 1px solid var(--line);
+      border-radius: 999px; padding: 0.32rem 0.65rem; font-size: 1rem; line-height: 1;
       cursor: pointer;
     }
-    .icon-btn:hover { background: var(--line-soft); opacity: 1; }
+    .icon-btn:hover { background: rgba(255,255,255,0.09); opacity: 1; }
     .icon-btn.is-favorite { background: var(--favorite-bg); color: var(--favorite); border-color: var(--favorite-line); }
-    .icon-btn.is-favorite:hover { background: #fbd7df; }
+    .icon-btn.is-favorite:hover { background: rgba(236,92,157,0.22); }
 
     /* Forms */
     label.form-label {
       display: block; font-weight: 650; font-size: 0.8rem; margin-bottom: 0.3rem; color: var(--ink);
     }
     .form-select, .form-textarea, .form-input {
-      width: 100%; padding: 0.55rem 0.7rem; font-size: 0.9rem; font-family: inherit;
-      border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fbfbfc;
-      color: var(--ink); transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+      width: 100%; padding: 0.6rem 0.75rem; font-size: 0.9rem; font-family: inherit;
+      border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--paper-2);
+      color: var(--ink); transition: border-color 120ms ease, box-shadow 120ms ease;
     }
     .form-select:focus, .form-textarea:focus, .form-input:focus {
-      outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 4px var(--accent-ring);
+      outline: none; border-color: var(--pink); box-shadow: 0 0 0 4px var(--accent-ring);
     }
+    .form-select { color-scheme: dark; }
     textarea.form-textarea { resize: vertical; }
     .field-hint { color: var(--ink-soft); font-size: 0.82rem; margin: 0 0 0.9rem; line-height: 1.45; }
     .field { margin-bottom: 0.85rem; }
@@ -182,7 +197,7 @@
     <a class="brand" href="{% url 'jobs:dashboard' %}">
       <span class="brand-mark">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 12.5L9.5 18L20 6" stroke="#14151a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 2L14 9.5L21.5 12L14 14.5L12 22L10 14.5L2.5 12L10 9.5L12 2Z" fill="#fff"/>
         </svg>
       </span>
       <span class="brand-name">Upwork Assistant</span>

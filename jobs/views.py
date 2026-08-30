@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -6,6 +7,7 @@ from django.views.decorators.http import require_POST
 
 from .models import Job
 from .services.classification import record_correction
+from .utils import extract_job_uid
 
 
 @login_required
@@ -40,6 +42,60 @@ def dashboard(request):
             "favorites_only": favorites_only,
         },
     )
+
+
+@login_required
+def add_job(request):
+    """Manually adds a job you found directly on Upwork (rather than via a
+    Gmail alert) so it goes through the exact same screenshot -> hooks ->
+    proposal flow as synced jobs. Only needs the job's Upwork URL, from
+    which job_uid is extracted — the same identifier the Chrome extension
+    matches screenshots against."""
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        upwork_url = request.POST.get("upwork_url", "").strip()
+        snippet_text = request.POST.get("snippet_text", "").strip()
+        freelancer_type = request.POST.get("freelancer_type") or Job.FreelancerType.UNKNOWN
+
+        errors = []
+        if not title:
+            errors.append("Title is required.")
+        if not upwork_url:
+            errors.append("Upwork URL is required.")
+
+        job_uid = extract_job_uid(upwork_url) if upwork_url else None
+        if upwork_url and not job_uid:
+            errors.append("Couldn't find a job ID in that URL — paste the job's URL from your browser's address bar.")
+
+        if not errors and job_uid:
+            existing = Job.objects.filter(job_uid=job_uid).first()
+            if existing:
+                messages.info(request, "This job is already in your list.")
+                return redirect("jobs:detail", pk=existing.pk)
+
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(
+                request,
+                "jobs/add_job.html",
+                {
+                    "freelancer_type_choices": Job.FreelancerType.choices,
+                    "form_values": request.POST,
+                },
+            )
+
+        job = Job.objects.create(
+            title=title,
+            upwork_url=upwork_url,
+            job_uid=job_uid,
+            snippet_text=snippet_text,
+            freelancer_type=freelancer_type,
+        )
+        messages.success(request, "Job added — capture a screenshot with the Chrome extension whenever you're ready.")
+        return redirect("jobs:detail", pk=job.pk)
+
+    return render(request, "jobs/add_job.html", {"freelancer_type_choices": Job.FreelancerType.choices, "form_values": {}})
 
 
 @login_required

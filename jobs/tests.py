@@ -214,6 +214,74 @@ class FavoriteAndSkipTests(TestCase):
         self.assertNotIn(other.title, content)
 
 
+class AddJobTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="admin4", password="testpass123")
+        self.client = Client()
+        self.client.force_login(self.user)
+
+    def test_get_renders_form(self):
+        resp = self.client.get("/jobs/add/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Add a job", resp.content.decode())
+
+    def test_creates_job_and_redirects_to_detail(self):
+        resp = self.client.post(
+            "/jobs/add/",
+            {
+                "title": "Manually added job",
+                "upwork_url": "https://www.upwork.com/jobs/Some-Title_~019876543210987654/",
+                "snippet_text": "Found this browsing Upwork directly.",
+                "freelancer_type": Job.FreelancerType.SINGLE,
+            },
+        )
+        job = Job.objects.get(title="Manually added job")
+        self.assertRedirects(resp, f"/jobs/{job.pk}/")
+        self.assertEqual(job.job_uid, "~019876543210987654")
+        self.assertEqual(job.freelancer_type, Job.FreelancerType.SINGLE)
+        self.assertEqual(job.status, Job.Status.NEW)
+
+    def test_missing_title_shows_error_and_does_not_create(self):
+        resp = self.client.post(
+            "/jobs/add/",
+            {"title": "", "upwork_url": "https://www.upwork.com/jobs/~012345678901234567/"},
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Title is required", resp.content.decode())
+        self.assertFalse(Job.objects.exists())
+
+    def test_url_without_job_id_shows_error(self):
+        resp = self.client.post(
+            "/jobs/add/",
+            {"title": "Bad URL job", "upwork_url": "https://www.upwork.com/nx/search/jobs/"},
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Couldn&#x27;t find a job ID", resp.content.decode())
+        self.assertFalse(Job.objects.exists())
+
+    def test_duplicate_job_uid_redirects_to_existing_job_instead_of_creating_another(self):
+        existing = Job.objects.create(
+            title="Already synced job",
+            upwork_url="https://www.upwork.com/jobs/~055555555555555555",
+            job_uid="~055555555555555555",
+        )
+        resp = self.client.post(
+            "/jobs/add/",
+            {
+                "title": "Same job, different title typed in",
+                "upwork_url": "https://www.upwork.com/jobs/Some-Slug_~055555555555555555/",
+            },
+        )
+        self.assertRedirects(resp, f"/jobs/{existing.pk}/")
+        self.assertEqual(Job.objects.count(), 1)
+
+    def test_requires_login(self):
+        anon_client = Client()
+        resp = anon_client.get("/jobs/add/")
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("/login/", resp.get("Location", ""))
+
+
 class MarkAppliedTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="admin3", password="testpass123")

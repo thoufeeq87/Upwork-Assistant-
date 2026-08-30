@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Add a job — Upwork Assistant{% endblock %}
+{% block content %}
+<a class="link" href="{% url 'jobs:dashboard' %}">&larr; Back to dashboard</a>
+
+<div class="card" style="margin-top:0.9rem;">
+  <h1>Add a job you found on Upwork</h1>
+  <p class="field-hint">
+    Found something worth applying to while browsing Upwork directly, instead of through an email alert?
+    Add it here — paste the job's URL and it'll go through the exact same screenshot &rarr; hooks &rarr; proposal flow as synced jobs.
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="field">
+      <label for="id_title" class="form-label">Job title</label>
+      <input type="text" name="title" id="id_title" class="form-input" required
+             value="{{ form_values.title|default:'' }}" placeholder="e.g. Mobile QA Tester Needed">
+    </div>
+    <div class="field">
+      <label for="id_upwork_url" class="form-label">Upwork job URL</label>
+      <input type="url" name="upwork_url" id="id_upwork_url" class="form-input" required
+             value="{{ form_values.upwork_url|default:'' }}" placeholder="https://www.upwork.com/jobs/...">
+      <p class="hint" style="margin:0.3rem 0 0;">Copy this from your browser's address bar while viewing the job on Upwork.</p>
+    </div>
+    <div class="field">
+      <label for="id_snippet_text" class="form-label">Description (optional)</label>
+      <textarea name="snippet_text" id="id_snippet_text" rows="3" class="form-textarea"
+                placeholder="Paste a bit of the job description if you have it — screenshots you capture later work fine too">{{ form_values.snippet_text|default:'' }}</textarea>
+    </div>
+    <div class="field">
+      <label for="id_freelancer_type" class="form-label">Freelancer type (if you already know)</label>
+      <select name="freelancer_type" id="id_freelancer_type" class="form-select">
+        {% for value, label in freelancer_type_choices %}
+          <option value="{{ value }}" {% if form_values.freelancer_type == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit">Add job</button>
+  </form>
+</div>
+{% endblock %}

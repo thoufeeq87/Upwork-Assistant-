@@ -8,6 +8,12 @@
     <span class="status">{{ job.get_status_display }}</span>
     <div class="job-actions">
       {% include "jobs/_favorite_button.html" %}
+      {% if job.status != "applied" %}
+        <form method="post" action="{% url 'jobs:mark_applied' job.id %}" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="icon-btn" title="Mark as applied">&#9989; Mark applied</button>
+        </form>
+      {% endif %}
       <form method="post" action="{% url 'jobs:skip_job' job.id %}" style="display:inline;"
             onsubmit="return confirm('Hide this job from your list? It\'s kept, not deleted — find it again under the Skipped filter on the dashboard.');">
         {% csrf_token %}

@@ -214,6 +214,43 @@ class FavoriteAndSkipTests(TestCase):
         self.assertNotIn(other.title, content)
 
 
+class MarkAppliedTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="admin3", password="testpass123")
+        self.job = Job.objects.create(
+            title="Apply job", upwork_url="https://www.upwork.com/jobs/~4", job_uid="~4"
+        )
+        self.client = Client()
+        self.client.force_login(self.user)
+
+    def test_marks_status_applied(self):
+        self.assertNotEqual(self.job.status, Job.Status.APPLIED)
+        self.client.post(f"/jobs/{self.job.pk}/mark-applied/")
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.status, Job.Status.APPLIED)
+
+    def test_redirects_to_applied_filter(self):
+        resp = self.client.post(f"/jobs/{self.job.pk}/mark-applied/")
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn(f"status={Job.Status.APPLIED}", resp.get("Location", ""))
+
+    def test_job_still_shown_under_applied_filter(self):
+        self.client.post(f"/jobs/{self.job.pk}/mark-applied/")
+        resp = self.client.get(f"/?status={Job.Status.APPLIED}")
+        self.assertIn(self.job.title, resp.content.decode())
+
+    def test_mark_applied_button_hidden_once_already_applied(self):
+        self.client.post(f"/jobs/{self.job.pk}/mark-applied/")
+        resp = self.client.get(f"/jobs/{self.job.pk}/")
+        self.assertNotIn("Mark as applied", resp.content.decode())
+
+    def test_requires_login(self):
+        anon_client = Client()
+        resp = anon_client.post(f"/jobs/{self.job.pk}/mark-applied/")
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("/login/", resp.get("Location", ""))
+
+
 class PurgeOldJobsTests(TestCase):
     def test_purges_only_jobs_older_than_retention_and_not_favorited(self):
         from django.core.management import call_command

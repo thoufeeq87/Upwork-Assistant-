@@ -1,8 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Dashboard — Upwork Assistant{% endblock %}
 {% block content %}
-<div style="display:flex; justify-content: space-between; align-items: center;">
-  <h1>Jobs</h1>
+<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1.1rem;">
+  <div>
+    <h1>Jobs</h1>
+    <p class="hint" style="margin:0;">{{ jobs|length }} job{{ jobs|length|pluralize }} in this view</p>
+  </div>
   <form method="post" action="{% url 'ingestion:sync_now' %}">
     {% csrf_token %}
     <button type="submit">Sync Now</button>
@@ -10,30 +13,32 @@
 </div>
 
 <div class="filters">
-  <strong>Status:</strong>
+  <span class="filter-label">Status</span>
   <a href="?{% if current_freelancer_type %}freelancer_type={{ current_freelancer_type }}{% endif %}" class="{% if not current_status %}active{% endif %}">All</a>
   {% for value, label in status_choices %}
     <a href="?status={{ value }}{% if current_freelancer_type %}&freelancer_type={{ current_freelancer_type }}{% endif %}" class="{% if current_status == value %}active{% endif %}">{{ label }}</a>
   {% endfor %}
 </div>
 <div class="filters">
-  <strong>Freelancer type:</strong>
+  <span class="filter-label">Freelancer type</span>
   <a href="?{% if current_status %}status={{ current_status }}{% endif %}" class="{% if not current_freelancer_type %}active{% endif %}">All</a>
   {% for value, label in freelancer_type_choices %}
     <a href="?freelancer_type={{ value }}{% if current_status %}&status={{ current_status }}{% endif %}" class="{% if current_freelancer_type == value %}active{% endif %}">{{ label }}</a>
   {% endfor %}
 </div>
-<div class="filters">
+<div class="filters" style="margin-bottom:1.25rem;">
   {% if favorites_only %}
-    <a href="?{% if current_status %}status={{ current_status }}{% endif %}{% if current_freelancer_type %}&freelancer_type={{ current_freelancer_type }}{% endif %}" class="active">&#9829; Favorites only</a>
+    <a href="?{% if current_status %}status={{ current_status }}{% endif %}{% if current_freelancer_type %}&freelancer_type={{ current_freelancer_type }}{% endif %}" class="active">&#9829;&nbsp;Favorites only</a>
   {% else %}
-    <a href="?favorite=1{% if current_status %}&status={{ current_status }}{% endif %}{% if current_freelancer_type %}&freelancer_type={{ current_freelancer_type }}{% endif %}">&#9825; Show favorites only</a>
+    <a href="?favorite=1{% if current_status %}&status={{ current_status }}{% endif %}{% if current_freelancer_type %}&freelancer_type={{ current_freelancer_type }}{% endif %}">&#9825;&nbsp;Show favorites only</a>
   {% endif %}
 </div>
 
 {% for job in jobs %}
   {% include "jobs/_job_card.html" %}
 {% empty %}
-<p>No jobs yet. Click "Sync Now" once Gmail ingestion is configured.</p>
+<div class="card empty-state">
+  <p style="margin:0;">No jobs yet. Click <strong>Sync Now</strong> once Gmail ingestion is configured.</p>
+</div>
 {% endfor %}
 {% endblock %}

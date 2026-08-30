@@ -1,23 +1,29 @@
 <div id="hooks-section">
-  {% if error %}<p style="color:#a33;">{{ error }}</p>{% endif %}
+  {% if error %}<p style="color:var(--danger); background:var(--danger-bg); padding:0.6rem 0.75rem; border-radius:var(--radius-sm); font-size:0.88rem;">{{ error }}</p>{% endif %}
   {% if hooks %}
-    {% for hook in hooks %}
-      <div class="card" style="{% if hook.selected %}border-color:#1a1a1a;{% endif %}">
-        <p>{{ hook.text }}</p>
-        <button
-          hx-post="{% url 'proposals:select_hook' hook.id %}"
-          hx-target="#hooks-section" hx-swap="outerHTML">
-          {% if hook.selected %}Selected &check;{% else %}Use this hook{% endif %}
-        </button>
-      </div>
-    {% endfor %}
+    <div style="display:flex; flex-direction:column; gap:0.6rem; margin-bottom:0.9rem;">
+      {% for hook in hooks %}
+        <div style="border:1px solid {% if hook.selected %}var(--accent){% else %}var(--line){% endif %}; border-radius:var(--radius-md); padding:0.85rem 1rem; {% if hook.selected %}background:#fafafa;{% endif %}">
+          <p style="margin:0 0 0.6rem; line-height:1.5;">{{ hook.text }}</p>
+          <button
+            type="button"
+            hx-post="{% url 'proposals:select_hook' hook.id %}"
+            hx-target="#hooks-section" hx-swap="outerHTML"
+            {% if hook.selected %}style="background:var(--success-fg);"{% endif %}>
+            {% if hook.selected %}&check; Selected{% else %}Use this hook{% endif %}
+          </button>
+        </div>
+      {% endfor %}
+    </div>
     <button
       hx-post="{% url 'proposals:generate_proposal' job.id %}"
       hx-target="#proposal-section" hx-swap="outerHTML"
+      hx-indicator="#proposal-spinner"
       {% if not hooks %}disabled{% endif %}>
       Generate full proposal from selected hook
     </button>
+    <span id="proposal-spinner" class="htmx-indicator" style="margin-left:0.5rem;">Writing&hellip;</span>
   {% else %}
-    <p>No hooks yet.</p>
+    <p class="hint" style="margin:0;">No hooks yet.</p>
   {% endif %}
 </div>

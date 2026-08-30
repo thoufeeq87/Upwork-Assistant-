@@ -4,7 +4,10 @@
 <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1.1rem;">
   <div>
     <h1>Jobs</h1>
-    <p class="hint" style="margin:0;">{{ jobs|length }} job{{ jobs|length|pluralize }} in this view</p>
+    <p class="hint" style="margin:0;">
+      {{ paginator.count }} job{{ paginator.count|pluralize }} in this view
+      {% if paginator.num_pages > 1 %}&middot; page {{ page_obj.number }} of {{ paginator.num_pages }}{% endif %}
+    </p>
   </div>
   <div style="display:flex; gap:0.5rem;">
     <a href="{% url 'jobs:add_job' %}" class="btn" style="text-decoration:none; display:inline-block;">+ Add job</a>
@@ -44,4 +47,16 @@
   <p style="margin:0;">No jobs yet. Click <strong>Sync Now</strong> once Gmail ingestion is configured.</p>
 </div>
 {% endfor %}
+
+{% if paginator.num_pages > 1 %}
+  <div style="display:flex; justify-content:center; align-items:center; gap:0.75rem; margin-top:1.25rem;">
+    {% if page_obj.has_previous %}
+      <a class="link" href="?{% if base_querystring %}{{ base_querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">&larr; Previous</a>
+    {% endif %}
+    <span class="hint">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a class="link" href="?{% if base_querystring %}{{ base_querystring }}&{% endif %}page={{ page_obj.next_page_number }}">Next &rarr;</a>
+    {% endif %}
+  </div>
+{% endif %}
 {% endblock %}

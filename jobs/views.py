@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -8,6 +9,8 @@ from django.views.decorators.http import require_POST
 from .models import Job
 from .services.classification import record_correction
 from .utils import extract_job_uid
+
+JOBS_PER_PAGE = 10
 
 
 @login_required
@@ -30,11 +33,23 @@ def dashboard(request):
     if favorites_only:
         jobs = jobs.filter(is_favorite=True)
 
+    paginator = Paginator(jobs, JOBS_PER_PAGE)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    # Pagination links need the current filters carried over, minus any
+    # existing page number (each link sets its own).
+    querydict = request.GET.copy()
+    querydict.pop("page", None)
+    base_querystring = querydict.urlencode()
+
     return render(
         request,
         "jobs/dashboard.html",
         {
-            "jobs": jobs,
+            "jobs": page_obj,
+            "page_obj": page_obj,
+            "paginator": paginator,
+            "base_querystring": base_querystring,
             "status_choices": Job.Status.choices,
             "freelancer_type_choices": Job.FreelancerType.choices,
             "current_status": status or "",

@@ -42,7 +42,10 @@ class Job(models.Model):
     )
     status = models.CharField(max_length=32, choices=Status.choices, default=Status.NEW)
     is_favorite = models.BooleanField(default=False, help_text="Starred jobs are also protected from the retention purge.")
-    posted_at = models.DateTimeField(null=True, blank=True)
+    email_received_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="When the Upwork alert email landed in Gmail (its internalDate) — not when Upwork itself posted the job.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

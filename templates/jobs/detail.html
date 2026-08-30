@@ -5,13 +5,7 @@
 
 <div class="card" style="margin-top:0.9rem;">
   <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-    <div style="display:flex; align-items:baseline; gap:0.5rem; flex-wrap:wrap;">
-      <span class="status">{{ job.get_status_display }}</span>
-      <span class="hint" title="{{ job.created_at|date:'N j, Y, g:i A' }}">Synced {{ job.created_at|timesince }} ago</span>
-      {% if job.posted_at %}
-        <span class="hint">&middot; Posted {{ job.posted_at|date:"N j, Y, g:i A" }}</span>
-      {% endif %}
-    </div>
+    <span class="status">{{ job.get_status_display }}</span>
     <div class="job-actions">
       {% include "jobs/_favorite_button.html" %}
       <form method="post" action="{% url 'jobs:skip_job' job.id %}" style="display:inline;"
@@ -23,6 +17,12 @@
   </div>
   <h1 style="margin-top:0.5rem;">{{ job.title }}</h1>
   <span class="badge badge-{{ job.freelancer_type }}">{{ job.get_freelancer_type_display }}</span>
+  <div style="margin-top:0.6rem; display:flex; flex-direction:column; gap:0.2rem;">
+    {% if job.email_received_at %}
+      <span class="hint">&#128231; Email received: {{ job.email_received_at|date:"N j, Y, g:i A" }}</span>
+    {% endif %}
+    <span class="hint" title="{{ job.created_at|date:'N j, Y, g:i A' }}">&#128260; App synced: {{ job.created_at|timesince }} ago</span>
+  </div>
   <p style="margin:0.75rem 0;">{{ job.snippet_text }}</p>
   <a class="link" href="{{ job.upwork_url }}" target="_blank" rel="noopener">Open on Upwork &rarr;</a>
 </div>

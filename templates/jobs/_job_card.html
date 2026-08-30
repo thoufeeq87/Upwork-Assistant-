@@ -1,6 +1,9 @@
 <div class="card" id="job-{{ job.id }}">
   <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-    <span class="status">{{ job.get_status_display }}</span>
+    <div style="display:flex; align-items:baseline; gap:0.5rem;">
+      <span class="status">{{ job.get_status_display }}</span>
+      <span class="hint" title="{{ job.created_at|date:'N j, Y, g:i A' }}">Synced {{ job.created_at|timesince }} ago</span>
+    </div>
     <div class="job-actions">
       {% include "jobs/_favorite_button.html" %}
       <button type="button" class="icon-btn"

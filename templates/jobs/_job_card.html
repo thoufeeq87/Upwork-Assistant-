@@ -3,6 +3,12 @@
     <span class="status">{{ job.get_status_display }}</span>
     <div class="job-actions">
       {% include "jobs/_favorite_button.html" %}
+      {% if job.status != "applied" %}
+        <form method="post" action="{% url 'jobs:mark_applied' job.id %}" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="icon-btn" title="Mark as applied">&#9989;</button>
+        </form>
+      {% endif %}
       <button type="button" class="icon-btn"
               title="Not interested — hide from list"
               hx-post="{% url 'jobs:skip_job' job.id %}"

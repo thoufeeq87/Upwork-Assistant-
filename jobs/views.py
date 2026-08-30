@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from .models import Job
@@ -88,3 +89,16 @@ def skip_job(request, pk):
         # (soft-hide, not deleted) and still reachable via the Skipped filter.
         return HttpResponse("")
     return redirect(request.META.get("HTTP_REFERER") or "jobs:dashboard")
+
+
+@login_required
+@require_POST
+def mark_applied(request, pk):
+    job = get_object_or_404(Job, pk=pk)
+    job.status = Job.Status.APPLIED
+    job.save(update_fields=["status", "updated_at"])
+
+    # Unlike favorite/skip, this isn't a quiet htmx update — applying is a
+    # milestone worth seeing land, so send the user to the dashboard's
+    # Applied filter as a visible confirmation.
+    return redirect(f"{reverse('jobs:dashboard')}?status={Job.Status.APPLIED}")

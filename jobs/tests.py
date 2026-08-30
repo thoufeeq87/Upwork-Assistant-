@@ -363,6 +363,57 @@ class PurgeOldJobsTests(TestCase):
         self.assertFalse(JobScreenshot.objects.filter(pk=shot_id).exists())
 
 
+class DashboardPaginationTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="admin5", password="testpass123")
+        self.client = Client()
+        self.client.force_login(self.user)
+        for i in range(15):
+            Job.objects.create(
+                title=f"Paginated job {i}",
+                upwork_url=f"https://www.upwork.com/jobs/~{100000 + i}",
+                job_uid=f"~{100000 + i}",
+            )
+
+    def test_first_page_shows_ten_jobs(self):
+        resp = self.client.get("/")
+        self.assertEqual(len(resp.context["page_obj"]), 10)
+        self.assertEqual(resp.context["paginator"].count, 15)
+        self.assertEqual(resp.context["paginator"].num_pages, 2)
+
+    def test_second_page_shows_remaining_five(self):
+        resp = self.client.get("/?page=2")
+        self.assertEqual(len(resp.context["page_obj"]), 5)
+
+    def test_first_page_has_next_link_not_previous(self):
+        resp = self.client.get("/")
+        content = resp.content.decode()
+        self.assertIn("Next", content)
+        self.assertNotIn("Previous", content)
+
+    def test_second_page_has_previous_link_not_next(self):
+        resp = self.client.get("/?page=2")
+        content = resp.content.decode()
+        self.assertIn("Previous", content)
+        self.assertNotIn("Next", content)
+
+    def test_pagination_links_preserve_active_filter(self):
+        Job.objects.create(
+            title="Applied job", upwork_url="https://www.upwork.com/jobs/~999999",
+            job_uid="~999999", status=Job.Status.APPLIED,
+        )
+        resp = self.client.get(f"/?status={Job.Status.NEW}")
+        content = resp.content.decode()
+        # 15 NEW jobs -> paginated; the Next link must carry status= along with page=.
+        self.assertIn(f"status={Job.Status.NEW}", content)
+
+    def test_no_pagination_controls_when_everything_fits_one_page(self):
+        Job.objects.all().delete()
+        Job.objects.create(title="Solo job", upwork_url="https://www.upwork.com/jobs/~1", job_uid="~1")
+        resp = self.client.get("/")
+        self.assertNotIn("Page 1 of", resp.content.decode())
+
+
 class ExtractJobUidTests(SimpleTestCase):
     def test_extracts_uid_from_real_alert_url(self):
         url = (

@@ -1,13 +1,11 @@
 <div id="proposal-section">
-  {% if error %}<p style="color:#a33;">{{ error }}</p>{% endif %}
+  {% if error %}<p style="color:var(--danger); background:var(--danger-bg); padding:0.6rem 0.75rem; border-radius:var(--radius-sm); font-size:0.88rem;">{{ error }}</p>{% endif %}
   {% if proposal %}
-    <div class="card">
-      <textarea id="proposal-text" rows="16" readonly>{{ proposal.text }}</textarea>
-      <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('proposal-text').value)">
-        Copy to clipboard
-      </button>
-    </div>
+    <textarea id="proposal-text" rows="16" readonly class="form-textarea" style="font-family:inherit; line-height:1.5; margin-bottom:0.7rem;">{{ proposal.text }}</textarea>
+    <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('proposal-text').value)">
+      Copy to clipboard
+    </button>
   {% else %}
-    <p>No proposal yet — select a hook and generate one.</p>
+    <p class="hint" style="margin:0;">No proposal yet — select a hook and generate one.</p>
   {% endif %}
 </div>

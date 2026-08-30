@@ -1,6 +1,6 @@
 <div class="card" id="job-{{ job.id }}">
   <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-    <div class="status">{{ job.get_status_display }}</div>
+    <span class="status">{{ job.get_status_display }}</span>
     <div class="job-actions">
       {% include "jobs/_favorite_button.html" %}
       <button type="button" class="icon-btn"
@@ -14,6 +14,6 @@
   </div>
   <a class="job-title" href="{% url 'jobs:detail' job.pk %}">{{ job.title }}</a>
   <span class="badge badge-{{ job.freelancer_type }}">{{ job.get_freelancer_type_display }}</span>
-  <p>{{ job.snippet_text|truncatewords:40 }}</p>
-  <a href="{{ job.upwork_url }}" target="_blank" rel="noopener">Open on Upwork &rarr;</a>
+  <p class="hint" style="margin:0.6rem 0 0.7rem;">{{ job.snippet_text|truncatewords:40 }}</p>
+  <a class="link" href="{{ job.upwork_url }}" target="_blank" rel="noopener">Open on Upwork &rarr;</a>
 </div>

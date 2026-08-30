@@ -3,13 +3,13 @@
   {% if hooks %}
     <div style="display:flex; flex-direction:column; gap:0.6rem; margin-bottom:0.9rem;">
       {% for hook in hooks %}
-        <div style="border:1px solid {% if hook.selected %}var(--accent){% else %}var(--line){% endif %}; border-radius:var(--radius-md); padding:0.85rem 1rem; {% if hook.selected %}background:#fafafa;{% endif %}">
+        <div style="border:1px solid {% if hook.selected %}var(--pink){% else %}var(--line){% endif %}; border-radius:var(--radius-md); padding:0.85rem 1rem; {% if hook.selected %}background:var(--pink-soft);{% endif %}">
           <p style="margin:0 0 0.6rem; line-height:1.5;">{{ hook.text }}</p>
           <button
             type="button"
             hx-post="{% url 'proposals:select_hook' hook.id %}"
             hx-target="#hooks-section" hx-swap="outerHTML"
-            {% if hook.selected %}style="background:var(--success-fg);"{% endif %}>
+            {% if hook.selected %}style="background:var(--pink); color:#fff;"{% endif %}>
             {% if hook.selected %}&check; Selected{% else %}Use this hook{% endif %}
           </button>
         </div>

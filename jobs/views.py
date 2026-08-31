@@ -6,6 +6,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
+from screenshots.services import attach_screenshot
+
 from .models import Job
 from .services.classification import record_correction
 from .utils import extract_job_uid
@@ -121,6 +123,29 @@ def job_detail(request, pk):
         "jobs/detail.html",
         {"job": job, "freelancer_type_choices": Job.FreelancerType.choices},
     )
+
+
+@login_required
+@require_POST
+def upload_screenshot(request, pk):
+    """Manual screenshot upload for devices that can't run the Chrome
+    extension at all — an iPad's Safari, for instance. Take the OS-level
+    screenshot yourself (side button + volume up, or an Apple Pencil
+    swipe), then pick it here from Photos. Feeds the exact same
+    attach_screenshot() the extension's API endpoint uses. Accepts
+    multiple images at once (in the order picked) for long job
+    descriptions needing more than one screenshot."""
+    job = get_object_or_404(Job, pk=pk)
+    images = request.FILES.getlist("images")
+
+    if not images:
+        messages.error(request, "Choose at least one image to upload.")
+    else:
+        for image in images:
+            attach_screenshot(job, image)
+        messages.success(request, f"{len(images)} screenshot{'s' if len(images) != 1 else ''} added.")
+
+    return redirect("jobs:detail", pk=job.pk)
 
 
 @login_required

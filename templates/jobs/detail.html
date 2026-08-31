@@ -75,8 +75,19 @@
     <img src="{{ shot.image.url }}" alt="Screenshot {{ shot.order }}"
          style="display:block; width:100%; margin-bottom:0.6rem; border:1px solid var(--line); border-radius:var(--radius-sm);">
   {% empty %}
-    <p class="hint" style="margin:0;">No screenshots yet. Capture the job page with the Chrome extension, then refresh this page.</p>
+    <p class="hint" style="margin:0 0 0.9rem;">No screenshots yet — capture the job page with the Chrome extension, or upload one below.</p>
   {% endfor %}
+
+  <form method="post" action="{% url 'jobs:upload_screenshot' job.id %}" enctype="multipart/form-data" style="margin-top:0.6rem;">
+    {% csrf_token %}
+    <label for="id_images" class="form-label">Upload screenshot{{ job.screenshots.count|pluralize }}</label>
+    <input type="file" name="images" id="id_images" accept="image/*" multiple required class="form-input">
+    <p class="hint" style="margin:0.3rem 0 0.7rem;">
+      On iPad: take the screenshot with the side button + volume up (or an Apple Pencil swipe), then choose it here from Photos.
+      Pick multiple at once, in order, for a long job description.
+    </p>
+    <button type="submit">Upload</button>
+  </form>
 </div>
 
 <div class="card">

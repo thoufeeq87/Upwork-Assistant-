@@ -12,4 +12,5 @@ urlpatterns = [
     path("jobs/<int:pk>/toggle-favorite/", views.toggle_favorite, name="toggle_favorite"),
     path("jobs/<int:pk>/skip/", views.skip_job, name="skip_job"),
     path("jobs/<int:pk>/mark-applied/", views.mark_applied, name="mark_applied"),
+    path("jobs/<int:pk>/upload-screenshot/", views.upload_screenshot, name="upload_screenshot"),
 ]

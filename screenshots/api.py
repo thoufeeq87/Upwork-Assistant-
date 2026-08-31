@@ -8,7 +8,7 @@ from jobs.models import Job
 from jobs.utils import extract_job_uid
 
 from .authentication import ExtensionTokenAuthentication
-from .models import JobScreenshot
+from .services import attach_screenshot
 
 
 class ScreenshotUploadView(APIView):
@@ -47,12 +47,7 @@ class ScreenshotUploadView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        next_order = job.screenshots.count()
-        screenshot = JobScreenshot.objects.create(job=job, image=image, order=next_order)
-
-        if job.status == Job.Status.NEW or job.status == Job.Status.REVIEWED:
-            job.status = Job.Status.SCREENSHOTS_ADDED
-            job.save(update_fields=["status", "updated_at"])
+        screenshot = attach_screenshot(job, image)
 
         return Response(
             {"id": screenshot.id, "job_id": job.id, "order": screenshot.order},

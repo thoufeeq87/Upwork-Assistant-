@@ -363,6 +363,50 @@ class PurgeOldJobsTests(TestCase):
         self.assertFalse(JobScreenshot.objects.filter(pk=shot_id).exists())
 
 
+class UploadScreenshotViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="admin6", password="testpass123")
+        self.job = Job.objects.create(
+            title="Upload test job", upwork_url="https://www.upwork.com/jobs/~6", job_uid="~6"
+        )
+        self.client = Client()
+        self.client.force_login(self.user)
+
+    def _png(self, name="shot.png"):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        return SimpleUploadedFile(name, b"fake-png-bytes", content_type="image/png")
+
+    def test_single_upload_attaches_screenshot(self):
+        resp = self.client.post(f"/jobs/{self.job.pk}/upload-screenshot/", {"images": [self._png()]})
+        self.assertRedirects(resp, f"/jobs/{self.job.pk}/")
+        self.assertEqual(self.job.screenshots.count(), 1)
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.status, Job.Status.SCREENSHOTS_ADDED)
+
+    def test_multiple_uploads_get_sequential_order(self):
+        self.client.post(
+            f"/jobs/{self.job.pk}/upload-screenshot/",
+            {"images": [self._png("a.png"), self._png("b.png"), self._png("c.png")]},
+        )
+        orders = list(self.job.screenshots.order_by("order").values_list("order", flat=True))
+        self.assertEqual(orders, [0, 1, 2])
+
+    def test_no_file_shows_error_and_creates_nothing(self):
+        resp = self.client.post(f"/jobs/{self.job.pk}/upload-screenshot/", {})
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(self.job.screenshots.count(), 0)
+        follow = self.client.get(resp.get("Location"))
+        self.assertIn("Choose at least one image", follow.content.decode())
+
+    def test_requires_login(self):
+        anon_client = Client()
+        resp = anon_client.post(f"/jobs/{self.job.pk}/upload-screenshot/", {"images": [self._png()]})
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("/login/", resp.get("Location", ""))
+        self.assertEqual(self.job.screenshots.count(), 0)
+
+
 class DashboardPaginationTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="admin5", password="testpass123")
